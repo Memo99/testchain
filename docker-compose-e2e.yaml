@@ -1,0 +1,90 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.testchain.com:
+  peer0.testOrg1.testchain.com:
+  peer1.testOrg1.testchain.com:
+  peer0.testOrg2.testchain.com:
+  peer1.testOrg2.testchain.com:
+
+networks:
+  testchain:
+services:
+  ca0:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-TestOrg1
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.testOrg1.testchain.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/0cba8d4fcd3cb0b888d7085d90409a190127ed3b08c199cfe6b9f16901e4d9c1_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.testOrg1.testchain.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/0cba8d4fcd3cb0b888d7085d90409a190127ed3b08c199cfe6b9f16901e4d9c1_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/testOrg1.testchain.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peerTestOrg1
+    networks:
+      - testchain
+
+  ca1:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-TestOrg2
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.testOrg2.testchain.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/7f97b930d0c402ce3c8cb25f87ba69aaea3ff1a88f0fba4e6bbdbaf596222430_sk
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.testOrg2.testchain.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/7f97b930d0c402ce3c8cb25f87ba69aaea3ff1a88f0fba4e6bbdbaf596222430_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/testOrg2.testchain.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peerTestOrg2
+    networks:
+      - testchain
+
+  orderer.testchain.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.testchain.com
+    container_name: orderer.testchain.com
+    networks:
+      - testchain
+
+  peer0.testOrg1.testchain.com:
+    container_name: peer0.testOrg1.testchain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.testOrg1.testchain.com
+    networks:
+      - testchain
+
+  peer1.testOrg1.testchain.com:
+    container_name: peer1.testOrg1.testchain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.testOrg1.testchain.com
+    networks:
+      - testchain
+
+  peer0.testOrg2.testchain.com:
+    container_name: peer0.testOrg2.testchain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.testOrg2.testchain.com
+    networks:
+      - testchain
+
+  peer1.testOrg2.testchain.com:
+    container_name: peer1.testOrg2.testchain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.testOrg2.testchain.com
+    networks:
+      - testchain
